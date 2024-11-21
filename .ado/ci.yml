@@ -33,12 +33,45 @@ jobs:
       displayName: List installed packages
 
     - script: |
+        pip install mypy pylint
+      displayName: Install mypy and pylint
+
+    - script: |
+        mypy azure.quantum
+      displayName: Run mypy
+
+    - script: |
+        pylint azure.quantum
+      displayName: Run pylint
+
+    - script: |
         cd $(Build.SourcesDirectory)/azure-quantum
         python setup.py sdist --dist-dir=target/wheels
         python setup.py bdist_wheel --dist-dir=target/wheels
       displayName: Build azure-quantum package
 
     - publish: $(Build.SourcesDirectory)/azure-quantum/target/wheels/
+      artifact: azure-quantum-wheels
+      displayName: Upload azure-quantum artifacts
+
+- job: "Test_Azure_Quantum_Python"
+  displayName: Test "azure-quantum" package
+  pool:
+    vmImage: 'windows-latest'
+  
+  steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.11'
+      displayName: Set Python version
+
+    - script: |
+        pip install pytest pytest-azurepipelines pytest-cov
+      displayName: Install pytest dependencies
+
+    - script: |
+        pip freeze
+      displayName: List installed packages
       artifact: azure-quantum-wheels
       displayName: Upload azure-quantum artifacts
 
